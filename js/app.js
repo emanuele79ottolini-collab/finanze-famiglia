@@ -111,6 +111,30 @@ function renderDashboard() {
         .reduce((s, f) => s + (parseFloat(f.rata) || 0), 0);
     $('kpi-rate').textContent = fmt(rateTot);
 
+    // ── Spese del mese corrente (da Transazioni) ─────────────
+    const meseCorrente = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const txMese = DB.getAll('transazioni').filter(t =>
+        t.tipo !== 'entrata' && t.data && t.data.startsWith(meseCorrente)
+    );
+    const totTxMese = txMese.reduce((s, t) => s + (parseFloat(t.importo) || 0), 0);
+    const disponibile = saldo - totTxMese;
+
+    const kpiTxMese = $('kpi-tx-mese');
+    const kpiDisp = $('kpi-disponibile');
+    const kpiTxLabel = $('kpi-tx-mese-label');
+    if (kpiTxMese) {
+        kpiTxMese.textContent = fmt(totTxMese);
+    }
+    if (kpiTxLabel) {
+        const mesiNomi = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+        const m = new Date().getMonth();
+        kpiTxLabel.textContent = `${txMese.length} transazioni — ${mesiNomi[m]} ${new Date().getFullYear()}`;
+    }
+    if (kpiDisp) {
+        kpiDisp.textContent = fmt(disponibile);
+        kpiDisp.style.color = disponibile >= 0 ? 'var(--success)' : 'var(--pink)';
+    }
+
     // Grafici
     Charts.renderDonutChart('donut-chart');
     Charts.renderBarChart('bar-chart');
@@ -132,6 +156,7 @@ function renderDashboard() {
     `).join('');
     }
 }
+
 
 // ── Costi Fissi ──────────────────────────────────────────────
 let cfEditId = null;
