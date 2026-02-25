@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💰 Finanze — Emanuele &amp; Elena</title>
+  <meta name="description" content="Gestisci le finanze di coppia: mutuo, bollette, finanziamenti, entrate e spese." />
+  <link rel="stylesheet" href="css/style.css?v=2" />
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- SheetJS (lettura Excel) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ───────────────── SIDEBAR ───────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">💰</div>
+      <div class="sidebar-logo-text">
+        <h1>Finanze<br>Famigliari</h1>
+        <span>Gestione di coppia</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">Panoramica</div>
+    <div class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">🏠</span> Dashboard
+    </div>
+
+    <div class="sidebar-section-label">Gestione</div>
+    <div class="nav-item" data-page="costifissi">
+      <span class="nav-icon">💳</span> Costi Fissi
+    </div>
+    <div class="nav-item" data-page="finanziamenti">
+      <span class="nav-icon">📊</span> Finanziamenti
+    </div>
+    <div class="nav-item" data-page="entrate">
+      <span class="nav-icon">💼</span> Entrate
+    </div>
+    <div class="nav-item" data-page="transazioni">
+      <span class="nav-icon">📋</span> Transazioni
+    </div>
+
+    <div class="sidebar-section-label">Altro</div>
+    <div class="nav-item" data-page="impostazioni">
+      <span class="nav-icon">⚙️</span> Impostazioni
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-users">
+        <div class="avatar avatar-1" id="sidebar-user1">T</div>
+        <div class="avatar avatar-2" id="sidebar-user2">L</div>
+        <span id="sidebar-users-label">Emanuele &amp; Elena</span>
+      </div>
+      <!-- Chi sta usando l'app? -->
+      <div style="margin-top:10px;font-size:11px;color:var(--text-dim);margin-bottom:4px;">Chi sei?</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button id="cu-btn-1" class="btn btn-outline btn-sm" style="flex:1;font-size:12px;"
+          onclick="setCurrentUser(1)">👤 Emanuele</button>
+        <button id="cu-btn-2" class="btn btn-outline btn-sm" style="flex:1;font-size:12px;"
+          onclick="setCurrentUser(2)">👤 Elena</button>
+      </div>
+      <div style="margin-top:4px;">
+        <span class="file-badge disconnected" id="fb-status-badge">○ Connessione...</span>
+      </div>
+    </div>
+    </div>
+  </aside>
+
+  <!-- Mobile hamburger & backdrop -->
+  <button class="hamburger" id="hamburger">☰</button>
+  <div class="sidebar-backdrop"></div>
+
+  <!-- ───────────────── MAIN ──────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ═══════════ DASHBOARD ══════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard <span>Mensile</span></div>
+          <div class="page-subtitle" id="dash-subtitle"></div>
+        </div>
+      </div>
+
+      <div class="alert-banner" id="dash-alert">
+        <span></span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card income">
+          <div class="kpi-icon">💼</div>
+          <div class="kpi-label">Entrate Mensili</div>
+          <div class="kpi-value positive" id="kpi-entrate">€0,00</div>
+          <div class="kpi-sub">Stipendi & altri redditi</div>
+        </div>
+        <div class="kpi-card expense">
+          <div class="kpi-icon">💳</div>
+          <div class="kpi-label">Spese Fisse</div>
+          <div class="kpi-value" style="color:var(--pink)" id="kpi-uscite">€0,00</div>
+          <div class="kpi-sub">Mutuo, bollette, abbonamenti</div>
+        </div>
+        <div class="kpi-card" id="kpi-saldo-card">
+          <div class="kpi-icon">⚖️</div>
+          <div class="kpi-label">Saldo Netto</div>
+          <div class="kpi-value neutral" id="kpi-saldo">€0,00</div>
+          <div class="kpi-sub">Entrate − Uscite fisse</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-label">Rate Attive</div>
+          <div class="kpi-value" style="color:var(--warning)" id="kpi-rate">€0,00</div>
+          <div class="kpi-sub">Totale rate mensili</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Distribuzione Spese</div>
+          <div class="chart-wrap"><canvas id="donut-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span> Storico 6 Mesi (Transazioni)</div>
+          <div class="chart-wrap"><canvas id="bar-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Ultime Voci — Costi Fissi</div>
+        <div id="scadenze-list"></div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ═══════════ COSTI FISSI ════════════════════════════════ -->
+    <div class="page" id="page-costifissi">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Costi <span>Fissi</span></div>
+          <div class="page-subtitle">Mutuo, bollette, abbonamenti ricorrenti</div>
+        </div>
+        <div class="toolbar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="input" id="cf-search" placeholder="Cerca..." style="width:180px;" />
+          </div>
+          <select class="select" id="cf-filter" style="width:160px;">
+            <option value="">Tutte le categorie</option>
+            <option value="Mutuo">Mutuo</option>
+            <option value="Bollette">Bollette</option>
+            <option value="Abbonamenti">Abbonamenti</option>
+            <option value="Altro">Altro</option>
+          </select>
+          <button class="btn btn-primary" id="cf-add-btn">＋ Aggiungi</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Categoria</th>
+              <th>Importo</th>
+              <th>Frequenza</th>
+              <th>Note</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="cf-tbody"></tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2"><strong>Totale</strong></td>
+              <td id="cf-total" colspan="4">€0,00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div><!-- /costifissi -->
+
+    <!-- ═══════════ FINANZIAMENTI ══════════════════════════════ -->
+    <div class="page" id="page-finanziamenti">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Finanziamenti <span>in corso</span></div>
+          <div class="page-subtitle">Mutui, prestiti, rate a lungo termine</div>
+        </div>
+        <div class="toolbar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="input" id="fin-search" placeholder="Cerca..." style="width:180px;" />
+          </div>
+          <button class="btn btn-primary" id="fin-add-btn">＋ Aggiungi</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome / Istituto</th>
+              <th>Stato</th>
+              <th>Rata</th>
+              <th>Avanzamento</th>
+              <th>Rate rimaste</th>
+              <th>Fine prevista</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="fin-tbody"></tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="2"><strong>Totale rate mensili attive</strong></td>
+              <td id="fin-total" colspan="5">€0,00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div><!-- /finanziamenti -->
+
+    <!-- ═══════════ ENTRATE ════════════════════════════════════ -->
+    <div class="page" id="page-entrate">
+      <div class="page-header">
+        <div>
+          <div class="page-title"><span>Entrate</span> Mensili</div>
+          <div class="page-subtitle" id="ent-view-label">Stipendi e tutti gli altri redditi</div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-outline" id="ent-toggle-view-btn" onclick="toggleViewMine('ent')"
+            style="font-size:12px;">👥 Mostra tutto</button>
+          <button class="btn btn-primary" id="ent-add-btn">＋ Aggiungi Entrata</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Descrizione</th>
+              <th>Tipo</th>
+              <th>Persona</th>
+              <th>Importo Mensile</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="ent-tbody"></tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="3"><strong>Totale Entrate</strong></td>
+              <td id="ent-total" colspan="2">€0,00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div><!-- /entrate -->
+
+    <!-- ═══════════ TRANSAZIONI ════════════════════════════════ -->
+    <div class="page" id="page-transazioni">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Storico <span>Transazioni</span></div>
+          <div class="page-subtitle" id="tx-view-label">Tutti i movimenti extra registrati</div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-outline" id="tx-toggle-view-btn" onclick="toggleViewMine('tx')"
+            style="font-size:12px;">👥 Mostra tutto</button>
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="input" id="tx-search" placeholder="Cerca..." style="width:160px;" />
+          </div>
+          <select class="select" id="tx-filter-tipo" style="width:130px;">
+            <option value="">Tutti</option>
+            <option value="entrata">Entrate</option>
+            <option value="uscita">Uscite</option>
+          </select>
+          <select class="select" id="tx-filter-mese" style="width:150px;">
+            <option value="">Tutti i mesi</option>
+          </select>
+          <button class="btn btn-outline" id="tx-export-csv">📥 CSV</button>
+          <button class="btn btn-outline" id="tx-import-excel-btn" title="Importa da Excel">📊 Importa Excel</button>
+          <input type="file" id="tx-import-excel-file" accept=".xlsx,.xls" style="display:none" />
+          <button class="btn btn-outline" id="tx-group-btn" title="Raggruppa per categoria">🗂️ Raggruppa</button>
+          <button class="btn btn-danger" id="tx-delete-selected-btn" style="display:none;">🗑️ Elimina selezionati
+            (<span id="tx-selected-count">0</span>)</button>
+          <button class="btn btn-danger" id="tx-delete-all-btn" title="Elimina TUTTE le transazioni">🗑️ Elimina
+            tutto</button>
+          <button class="btn btn-primary" id="tx-add-btn">＋ Aggiungi</button>
+        </div>
+      </div>
+
+      <!-- Grafico categorie (visibile solo in modalità Raggruppa) -->
+      <div id="tx-chart-wrap" style="display:none; padding:20px 0 10px;">
+        <canvas id="tx-cat-chart" style="max-height:340px;"></canvas>
+      </div>
+
+      <div class="table-wrap" id="tx-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px;"><input type="checkbox" id="tx-select-all" title="Seleziona tutti" /></th>
+              <th>Data</th>
+              <th>Descrizione / Categoria</th>
+              <th>Persona</th>
+              <th>Tipo</th>
+              <th>Importo</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="tx-tbody"></tbody>
+          <tfoot id="tx-tfoot"></tfoot>
+        </table>
+      </div>
+    </div><!-- /transazioni -->
+
+    <!-- ═══════════ IMPOSTAZIONI ═══════════════════════════════ -->
+    <div class="page" id="page-impostazioni">
+      <div class="page-header">
+        <div>
+          <div class="page-title">⚙️ <span>Impostazioni</span></div>
+          <div class="page-subtitle">Personalizza l'app e gestisci i dati</div>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <!-- Utenti -->
+        <div class="settings-card">
+          <h3>👥 Utenti</h3>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="field-group">
+              <label class="field-label">Nome utente 1 (tu)</label>
+              <input class="input" id="set-user1" placeholder="Il tuo nome" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Nome utente 2 (lei)</label>
+              <input class="input" id="set-user2" placeholder="Il suo nome" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Valuta</label>
+              <select class="select" id="set-currency">
+                <option value="€">€ Euro</option>
+                <option value="$">$ Dollaro</option>
+                <option value="£">£ Sterlina</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="set-save-btn">💾 Salva Impostazioni</button>
+          </div>
+        </div>
+
+        <!-- Firebase Status -->
+        <div class="settings-card gdrive-card">
+          <h3>🔥 Sincronizzazione Firebase</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">
+            I dati sono salvati su <strong style="color:var(--accent-light)">Firebase Realtime Database</strong>.
+            Ogni modifica è visibile istantaneamente su tutti i dispositivi. Basta condividere il link dell'app!
+          </p>
+          <div
+            style="background:rgba(99,102,241,.08);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+              <span class="file-badge disconnected" id="fb-status-badge-settings">○ Connessione...</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">Database: <code
+                style="color:var(--accent-light)">finanze-web-default-rtdb</code></div>
+          </div>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">✅ Modifiche sincronizzate in tempo reale<br>✅
+            Funziona su PC, telefono e tablet<br>✅ Backup automatico sempre attivo</p>
+        </div>
+
+        <!-- Backup manuale -->
+        <div class="settings-card">
+          <h3>📦 Backup Manuale</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+            Esporta o importa i dati come file JSON (utile come backup o su browser che non supportano File System API).
+          </p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button class="btn btn-outline" id="set-export-btn">📤 Esporta JSON</button>
+            <label class="btn btn-outline" style="cursor:pointer;">
+              📥 Importa JSON
+              <input type="file" id="set-import-file" accept=".json" style="display:none;" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Reset -->
+        <div class="settings-card">
+          <h3>⚠️ Zona Pericolosa</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+            Questa azione eliminerà TUTTI i dati salvati in modo irreversibile.
+          </p>
+          <button class="btn btn-danger" id="set-reset-btn">🗑️ Azzera Tutti i Dati</button>
+        </div>
+
+        <!-- Come funziona -->
+        <div class="settings-card">
+          <h3>ℹ️ Come funziona la sincronizzazione</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+            <strong style="color:var(--accent-light)">Prima volta (uno solo):</strong><br>
+            1. Clicca <em>Crea nuovo file JSON</em> → scegli la cartella Google Drive condivisa → dai un nome (es.
+            <code>finanze_famigliari.json</code>)<br><br>
+            <strong style="color:var(--accent-light)">L'altra persona:</strong><br>
+            2. Aprire l'app → Impostazioni → <em>Apri file esistente</em> → seleziona lo stesso file dalla cartella
+            Drive<br><br>
+            <strong style="color:var(--accent-light)">Uso quotidiano:</strong><br>
+            3. Ogni modifica scrive automaticamente sul file → Drive sincronizza → l'altro vede i dati aggiornati! Usa
+            🔄 per ricaricare i dati se l'altro ha fatto modifiche.
+          </p>
+        </div>
+      </div>
+    </div><!-- /impostazioni -->
+
+  </main><!-- /main -->
+
+  <!-- ═══════════════ MODALS ══════════════════════════════════ -->
+
+  <!-- Modal Costi Fissi -->
+  <div class="modal-overlay" id="cf-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="cf-modal-title">Nuovo Costo Fisso</div>
+        <button class="modal-close" id="cf-cancel-btn">✕</button>
+      </div>
+      <form id="cf-form" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Nome *</label>
+            <input class="input" id="cf-nome" placeholder="Es: Mutuo Prima Casa, Luce, Netflix..." required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Categoria *</label>
+            <select class="select" id="cf-categoria">
+              <option value="Mutuo">🏠 Mutuo</option>
+              <option value="Bollette">⚡ Bollette</option>
+              <option value="Abbonamenti">📺 Abbonamenti</option>
+              <option value="Altro">📌 Altro</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Importo (€) *</label>
+            <input class="input" id="cf-importo" type="number" step="0.01" min="0" placeholder="0,00" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Frequenza</label>
+            <select class="select" id="cf-frequenza">
+              <option value="Mensile">Mensile</option>
+              <option value="Bimestrale">Bimestrale</option>
+              <option value="Trimestrale">Trimestrale</option>
+              <option value="Annuale">Annuale</option>
+            </select>
+          </div>
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Note</label>
+            <input class="input" id="cf-note" placeholder="Note opzionali..." />
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="cf-cancel-btn2"
+          onclick="document.getElementById('cf-modal').classList.remove('open'); cfEditId=null;">Annulla</button>
+        <button class="btn btn-primary" id="cf-save-btn">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Finanziamenti -->
+  <div class="modal-overlay" id="fin-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="fin-modal-title">Nuovo Finanziamento</div>
+        <button class="modal-close" id="fin-cancel-btn">✕</button>
+      </div>
+      <form id="fin-form" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Nome finanziamento *</label>
+            <input class="input" id="fin-nome" placeholder="Es: Mutuo, Prestito Auto, Finanziamento Cucina..."
+              required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Istituto / Banca</label>
+            <input class="input" id="fin-istituto" placeholder="Es: UniCredit, BNL..." />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Rata mensile (€) *</label>
+            <input class="input" id="fin-rata" type="number" step="0.01" min="0" placeholder="0,00" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Rate totali *</label>
+            <input class="input" id="fin-rate-tot" type="number" min="1" placeholder="Es: 240" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Rate rimanenti *</label>
+            <input class="input" id="fin-rate-rim" type="number" min="0" placeholder="Es: 180" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Data fine prevista</label>
+            <input class="input" id="fin-data-fine" type="date" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Capitale Residuo (€)</label>
+            <input class="input" id="fin-capitale-residuo" type="number" step="0.01" min="0"
+              placeholder="Es: 45000,00" />
+          </div>
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Note</label>
+            <input class="input" id="fin-note" placeholder="Note opzionali..." />
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn btn-outline"
+          onclick="document.getElementById('fin-modal').classList.remove('open'); finEditId=null;">Annulla</button>
+        <button class="btn btn-primary" id="fin-save-btn">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Entrate -->
+  <div class="modal-overlay" id="ent-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="ent-modal-title">Nuova Entrata</div>
+        <button class="modal-close" id="ent-cancel-btn">✕</button>
+      </div>
+      <form id="ent-form" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Descrizione *</label>
+            <input class="input" id="ent-descrizione" placeholder="Es: Stipendio Marzo, Affitto ricevuto..." required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Tipo</label>
+            <select class="select" id="ent-tipo">
+              <option value="Stipendio">💼 Stipendio</option>
+              <option value="Freelance">💻 Freelance</option>
+              <option value="Affitto percepito">🏠 Affitto percepito</option>
+              <option value="Altro">📌 Altro</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Importo mensile (€) *</label>
+            <input class="input" id="ent-importo" type="number" step="0.01" min="0" placeholder="0,00" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Persona</label>
+            <select class="select" id="ent-persona">
+              <option value="Emanuele">Emanuele</option>
+              <option value="Elena">Elena</option>
+              <option value="Comune">Comune</option>
+            </select>
+          </div>
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Note</label>
+            <input class="input" id="ent-note" placeholder="Note opzionali..." />
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn btn-outline"
+          onclick="document.getElementById('ent-modal').classList.remove('open'); entEditId=null;">Annulla</button>
+        <button class="btn btn-primary" id="ent-save-btn">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Transazioni -->
+  <div class="modal-overlay" id="tx-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="tx-modal-title">Nuova Transazione</div>
+        <button class="modal-close" id="tx-cancel-btn">✕</button>
+      </div>
+      <form id="tx-form" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Descrizione *</label>
+            <input class="input" id="tx-descrizione" placeholder="Es: Cena fuori, Rimborso spesa..." required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Tipo *</label>
+            <select class="select" id="tx-tipo">
+              <option value="uscita">↓ Uscita</option>
+              <option value="entrata">↑ Entrata</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Categoria</label>
+            <select class="select" id="tx-categoria">
+              <option value="Spesa">🛒 Spesa alimentare</option>
+              <option value="Ristorante">🍽️ Ristorante</option>
+              <option value="Trasporti">🚗 Trasporti</option>
+              <option value="Salute">💊 Salute</option>
+              <option value="Abbigliamento">👗 Abbigliamento</option>
+              <option value="Svago">🎭 Svago</option>
+              <option value="Regali">🎁 Regali</option>
+              <option value="Casa">🏠 Casa</option>
+              <option value="Rimborso">↩️ Rimborso</option>
+              <option value="Altro">📌 Altro</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Importo (€) *</label>
+            <input class="input" id="tx-importo" type="number" step="0.01" min="0" placeholder="0,00" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Data</label>
+            <input class="input" id="tx-data" type="date" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Persona</label>
+            <select class="select" id="tx-persona">
+              <option value="Emanuele">Emanuele</option>
+              <option value="Elena">Elena</option>
+              <option value="Comune">Comune</option>
+            </select>
+          </div>
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label">Note</label>
+            <input class="input" id="tx-note" placeholder="Note opzionali..." />
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn btn-outline"
+          onclick="document.getElementById('tx-modal').classList.remove('open'); txEditId=null;">Annulla</button>
+        <button class="btn btn-primary" id="tx-save-btn">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <script src="js/data.js?v=2"></script>
+  <script src="js/charts.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
+  <script>
+    // Set dashboard subtitle with current month
+    document.addEventListener('DOMContentLoaded', () => {
+      const sub = document.getElementById('dash-subtitle');
+      if (sub) {
+        const label = new Date().toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+        sub.textContent = 'Riepilogo di ' + label.charAt(0).toUpperCase() + label.slice(1);
+      }
+    });
+  </script>
+</body>
+
+</html>
