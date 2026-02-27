@@ -5,8 +5,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>💰 Finanze — Emanuele &amp; Elena</title>
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Gestisci le finanze di coppia: mutuo, bollette, finanziamenti, entrate e spese." />
   <link rel="stylesheet" href="css/style.css?v=2" />
+  <style>
+    body.is-locked {
+      overflow: hidden !important;
+      height: 100vh !important;
+    }
+  </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -16,7 +23,31 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 
-<body>
+<body class="is-locked">
+
+  <!-- Password Protection Overlay -->
+  <div id="password-overlay"
+    style="position:fixed;top:0;left:0;width:100%;height:100%;background:#f4f7f6;z-index:999999;display:flex;align-items:center;justify-content:center;padding:2rem;transition:opacity 0.3s ease;">
+    <div
+      style="max-width:400px;width:100%;padding:3rem 2.5rem;text-align:center;background:#fff;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);">
+      <div style="font-size:3rem;margin-bottom:1rem;">💰</div>
+      <h2 style="font-family:inherit;font-weight:700;font-size:1.5rem;margin-bottom:0.5rem;color:#2c3e50;">Finanze
+        Familiari</h2>
+      <p style="margin-bottom:2rem;color:#7f8c8d;font-size:0.95rem;line-height:1.5;">Inserisci la password per accedere
+        al bilancio.</p>
+
+      <input type="password" id="overlay-pwd" placeholder="Password"
+        style="width:100%;padding:0.9rem 1rem;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:1rem;font-size:1rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+        onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'" />
+
+      <button id="overlay-btn"
+        style="width:100%;cursor:pointer;padding:0.9rem;display:flex;justify-content:center;align-items:center;gap:0.5rem;background:#6366f1;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:1rem;">Accedi
+        <span aria-hidden="true">→</span></button>
+
+      <p id="overlay-err" style="color:#ef4444;font-size:0.85rem;margin-top:1rem;display:none;font-weight:500;">Password
+        errata, riprova.</p>
+    </div>
+  </div>
 
   <!-- ───────────────── SIDEBAR ───────────────────────────────── -->
   <aside class="sidebar" id="sidebar">
@@ -649,6 +680,46 @@
   <script src="js/data.js?v=2"></script>
   <script src="js/charts.js?v=2"></script>
   <script src="js/app.js?v=2"></script>
+  <script>
+    (function () {
+      const overlay = document.getElementById('password-overlay');
+      const input = document.getElementById('overlay-pwd');
+      const btn = document.getElementById('overlay-btn');
+      const err = document.getElementById('overlay-err');
+      const pwd = 'Bilancio_2026!';
+
+      if (sessionStorage.getItem('site_unlocked_fin') === 'true') {
+        document.body.classList.remove('is-locked');
+        if (overlay) overlay.style.display = 'none';
+        return;
+      }
+
+      function unlock() {
+        if (input.value === pwd) {
+          sessionStorage.setItem('site_unlocked_fin', 'true');
+          document.body.classList.remove('is-locked');
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            overlay.style.display = 'none';
+          }, 300);
+        } else {
+          err.style.display = 'block';
+          input.value = '';
+          input.focus();
+        }
+      }
+
+      if (btn && input) {
+        btn.addEventListener('click', unlock);
+        input.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') unlock();
+        });
+        input.addEventListener('input', () => {
+          err.style.display = 'none';
+        });
+      }
+    })();
+  </script>
   <script>
     // Set dashboard subtitle with current month
     document.addEventListener('DOMContentLoaded', () => {
