@@ -100,6 +100,11 @@
       <div style="margin-top:4px;">
         <span class="file-badge disconnected" id="fb-status-badge">○ Connessione...</span>
       </div>
+      <!-- Tasto Esci -->
+      <div style="margin-top:10px;">
+        <button id="logout-btn" class="btn btn-outline btn-sm"
+          style="width:100%;font-size:12px;color:var(--pink);border-color:var(--pink);">🔒 Esci / Blocca app</button>
+      </div>
     </div>
     </div>
   </aside>
@@ -686,27 +691,40 @@
       const input = document.getElementById('overlay-pwd');
       const btn = document.getElementById('overlay-btn');
       const err = document.getElementById('overlay-err');
+      const logoutBtn = document.getElementById('logout-btn');
       const pwd = 'Bilancio_2026!';
 
       if (sessionStorage.getItem('site_unlocked_fin') === 'true') {
         document.body.classList.remove('is-locked');
         if (overlay) overlay.style.display = 'none';
-        return;
       }
 
       function unlock() {
         if (input.value === pwd) {
           sessionStorage.setItem('site_unlocked_fin', 'true');
           document.body.classList.remove('is-locked');
-          overlay.style.opacity = '0';
+          overlay.style.display = 'flex';
           setTimeout(() => {
-            overlay.style.display = 'none';
-          }, 300);
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+          }, 10);
         } else {
           err.style.display = 'block';
           input.value = '';
           input.focus();
         }
+      }
+
+      function lock() {
+        sessionStorage.removeItem('site_unlocked_fin');
+        input.value = '';
+        err.style.display = 'none';
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        document.body.classList.add('is-locked');
+        // Chiudi sidebar su mobile se aperta
+        document.getElementById('sidebar').classList.remove('open');
+        document.querySelector('.sidebar-backdrop').classList.remove('active');
       }
 
       if (btn && input) {
@@ -717,6 +735,10 @@
         input.addEventListener('input', () => {
           err.style.display = 'none';
         });
+      }
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', lock);
       }
     })();
   </script>
