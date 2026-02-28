@@ -22,7 +22,7 @@ const ROOT = 'finanze_famigliari';
 const CACHE_KEY = 'finanze_cache_v2';
 
 const defaultData = {
-    settings: { user1: 'Emanuele', user2: 'Elena', currency: '€' },
+    settings: { user1: 'Emanuele', user2: 'Elena', currency: '€', ccUser1: 0, ccUser2: 0 },
     costifissi: [],
     finanziamenti: [],
     entrate: [],

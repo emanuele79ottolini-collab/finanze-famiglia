@@ -4,13 +4,6 @@
 
 // ── Helpers ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const defaultData = {
-    settings: { user1: 'Emanuele', user2: 'Elena', currency: '€', ccUser1: 0, ccUser2: 0 },
-    costifissi: [],
-    finanziamenti: [],
-    entrate: [],
-    transazioni: [],
-};
 const fmt = v => {
     const cur = (DB.loadData().settings.currency) || '€';
     return `${cur}${Number(v || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
