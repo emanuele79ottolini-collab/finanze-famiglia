@@ -131,6 +131,36 @@
         <span></span>
       </div>
 
+      <!-- I Nostri Conti (Reali) -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:700; color:var(--text); margin:0;">🏦 I Nostri Conti</h3>
+        <button class="btn btn-outline btn-sm" onclick="openCcModal()" style="font-size:12px; padding:4px 10px;">✏️
+          Aggiorna Saldi</button>
+      </div>
+
+      <div class="kpi-grid" style="margin-bottom:24px;">
+        <div class="kpi-card"
+          style="background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.02)); border-color:rgba(99,102,241,0.2);">
+          <div class="kpi-label" id="cc-name-1">Saldo CC Emanuele</div>
+          <div class="kpi-value positive" id="kpi-cc1" style="color:var(--primary);">€0,00</div>
+          <div class="kpi-sub">Disponibilità attuale</div>
+        </div>
+        <div class="kpi-card"
+          style="background:linear-gradient(135deg, rgba(236,72,153,0.08), rgba(236,72,153,0.02)); border-color:rgba(236,72,153,0.2);">
+          <div class="kpi-label" id="cc-name-2">Saldo CC Elena</div>
+          <div class="kpi-value positive" id="kpi-cc2" style="color:var(--pink);">€0,00</div>
+          <div class="kpi-sub">Disponibilità attuale</div>
+        </div>
+        <div class="kpi-card"
+          style="background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02)); border-color:rgba(16,185,129,0.2);">
+          <div class="kpi-label">Patrimonio Totale</div>
+          <div class="kpi-value positive" id="kpi-cc-tot" style="color:var(--success);">€0,00</div>
+          <div class="kpi-sub">Somma conti liquidi</div>
+        </div>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px;">📊 Bilancio Mensile
+        (Previsionale)</h3>
       <div class="kpi-grid">
         <div class="kpi-card income">
           <div class="kpi-icon">💼</div>
@@ -396,6 +426,14 @@
                 <option value="$">$ Dollaro</option>
                 <option value="£">£ Sterlina</option>
               </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" id="lbl-set-cc1">Saldo C/C Utente 1</label>
+              <input class="input" type="number" step="0.01" id="set-cc1" placeholder="Es: 1540.50" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" id="lbl-set-cc2">Saldo C/C Utente 2</label>
+              <input class="input" type="number" step="0.01" id="set-cc2" placeholder="Es: 3200.00" />
             </div>
             <button class="btn btn-primary" id="set-save-btn">💾 Salva Impostazioni</button>
           </div>
@@ -677,6 +715,34 @@
         <button class="btn btn-outline"
           onclick="document.getElementById('tx-modal').classList.remove('open'); txEditId=null;">Annulla</button>
         <button class="btn btn-primary" id="tx-save-btn">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Aggiorna Saldi CC (Quick Edit) -->
+  <div class="modal-overlay" id="cc-modal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-header">
+        <div class="modal-title">🏦 Aggiorna Saldi C/C</div>
+        <button class="modal-close" onclick="closeModal('cc-modal')">✕</button>
+      </div>
+      <form id="cc-form" onsubmit="return false;">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Inserisci le cifre esatte che leggi oggi
+          sui vostri conti in banca per allineare il patrimonio totale.</p>
+        <div class="form-grid">
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label" id="lbl-quick-cc1">Saldo C/C Utente 1 (€)</label>
+            <input class="input" type="number" step="0.01" id="quick-cc1" placeholder="0.00" />
+          </div>
+          <div class="field-group" style="grid-column:1/-1;">
+            <label class="field-label" id="lbl-quick-cc2">Saldo C/C Utente 2 (€)</label>
+            <input class="input" type="number" step="0.01" id="quick-cc2" placeholder="0.00" />
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('cc-modal')">Annulla</button>
+        <button class="btn btn-primary" id="cc-save-btn" onclick="saveQuickCc()">💾 Aggiorna</button>
       </div>
     </div>
   </div>

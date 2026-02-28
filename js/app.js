@@ -4,6 +4,13 @@
 
 // ── Helpers ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
+const defaultData = {
+    settings: { user1: 'Emanuele', user2: 'Elena', currency: '€', ccUser1: 0, ccUser2: 0 },
+    costifissi: [],
+    finanziamenti: [],
+    entrate: [],
+    transazioni: [],
+};
 const fmt = v => {
     const cur = (DB.loadData().settings.currency) || '€';
     return `${cur}${Number(v || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -87,6 +94,22 @@ function renderDashboard() {
     const uscite = DB.calcTotaleCostiMensili();
     const saldo = DB.calcSaldo();
 
+    // CC Reali
+    const cc1 = parseFloat(data.settings.ccUser1) || 0;
+    const cc2 = parseFloat(data.settings.ccUser2) || 0;
+    const cctot = cc1 + cc2;
+
+    // Nomi CC
+    const n1 = data.settings.user1 || 'Emanuele';
+    const n2 = data.settings.user2 || 'Elena';
+
+    $('cc-name-1').textContent = `Saldo CC ${n1}`;
+    $('cc-name-2').textContent = `Saldo CC ${n2}`;
+
+    $('kpi-cc1').textContent = fmt(cc1);
+    $('kpi-cc2').textContent = fmt(cc2);
+    $('kpi-cc-tot').textContent = fmt(cctot);
+
     // KPI
     $('kpi-entrate').textContent = fmt(entrate);
     $('kpi-uscite').textContent = fmt(uscite);
@@ -157,6 +180,25 @@ function renderDashboard() {
     }
 }
 
+// ── Modale Aggiorna Saldi CC ─────────────────────────────────
+function openCcModal() {
+    const data = DB.loadData();
+    $('lbl-quick-cc1').textContent = `Saldo C/C ${data.settings.user1 || 'Emanuele'} (€)`;
+    $('lbl-quick-cc2').textContent = `Saldo C/C ${data.settings.user2 || 'Elena'} (€)`;
+    $('quick-cc1').value = data.settings.ccUser1 || '';
+    $('quick-cc2').value = data.settings.ccUser2 || '';
+    openModal('cc-modal');
+}
+
+function saveQuickCc() {
+    DB.saveSettings({
+        ccUser1: parseFloat($('quick-cc1').value) || 0,
+        ccUser2: parseFloat($('quick-cc2').value) || 0
+    });
+    closeModal('cc-modal');
+    showToast('Saldi aggiornati con successo!');
+    renderDashboard();
+}
 
 // ── Costi Fissi ──────────────────────────────────────────────
 let cfEditId = null;
@@ -820,6 +862,12 @@ function renderImpostazioni() {
     $('set-user1').value = data.settings.user1 || '';
     $('set-user2').value = data.settings.user2 || '';
     $('set-currency').value = data.settings.currency || '€';
+
+    const c1 = $('set-cc1'); if (c1) c1.value = data.settings.ccUser1 || '';
+    const c2 = $('set-cc2'); if (c2) c2.value = data.settings.ccUser2 || '';
+
+    const l1 = $('lbl-set-cc1'); if (l1) l1.textContent = `Saldo C/C ${data.settings.user1 || 'Utente 1'} (€)`;
+    const l2 = $('lbl-set-cc2'); if (l2) l2.textContent = `Saldo C/C ${data.settings.user2 || 'Utente 2'} (€)`;
 }
 
 function saveImpostazioni() {
@@ -827,6 +875,8 @@ function saveImpostazioni() {
         user1: $('set-user1').value.trim() || 'Tu',
         user2: $('set-user2').value.trim() || 'Lei',
         currency: $('set-currency').value || '€',
+        ccUser1: parseFloat($('set-cc1')?.value) || 0,
+        ccUser2: parseFloat($('set-cc2')?.value) || 0,
     });
     updateSidebarUsers();
     showToast('Impostazioni salvate!');
