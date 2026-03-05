@@ -1,5 +1,7 @@
 # 💰 Finanze Famigliari — Emanuele & Elena
 
+🚀 **Live Demo:** [https://finanze-famiglia.vercel.app/](https://finanze-famiglia.vercel.app/)
+
 Una web app per la gestione delle finanze di coppia (mutuo, bollette, finanziamenti, entrate e spese). Disegnata per essere semplice, intuitiva e accessibile da qualsiasi dispositivo con sincronizzazione in tempo reale.
 
 ## ✨ Funzionalità Principali
