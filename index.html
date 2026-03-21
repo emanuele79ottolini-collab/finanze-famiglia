@@ -257,18 +257,20 @@
           <div class="page-subtitle">Mutuo, bollette, abbonamenti ricorrenti</div>
         </div>
         <div class="toolbar">
-          <div class="search-input-wrap">
-            <span class="search-icon">🔍</span>
-            <input class="input" id="cf-search" placeholder="Cerca..." style="width:180px;" />
+          <div class="toolbar-filter-row">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="input" id="cf-search" placeholder="Cerca..." />
+            </div>
+            <select class="select" id="cf-filter">
+              <option value="">Tutte le categorie</option>
+              <option value="Mutuo">Mutuo</option>
+              <option value="Bollette">Bollette</option>
+              <option value="Abbonamenti">Abbonamenti</option>
+              <option value="Altro">Altro</option>
+            </select>
           </div>
-          <select class="select" id="cf-filter" style="width:160px;">
-            <option value="">Tutte le categorie</option>
-            <option value="Mutuo">Mutuo</option>
-            <option value="Bollette">Bollette</option>
-            <option value="Abbonamenti">Abbonamenti</option>
-            <option value="Altro">Altro</option>
-          </select>
-          <button class="btn btn-primary" id="cf-add-btn">＋ Aggiungi</button>
+          <button class="btn btn-primary toolbar-cta" id="cf-add-btn">＋ Aggiungi</button>
         </div>
       </div>
 
@@ -343,9 +345,10 @@
           <div class="page-subtitle" id="ent-view-label">Stipendi e tutti gli altri redditi</div>
         </div>
         <div class="toolbar">
-          <button class="btn btn-outline" id="ent-toggle-view-btn" onclick="toggleViewMine('ent')"
-            style="font-size:12px;">👥 Mostra tutto</button>
-          <button class="btn btn-primary" id="ent-add-btn">＋ Aggiungi Entrata</button>
+          <div class="toolbar-row">
+            <button class="btn btn-outline" id="ent-toggle-view-btn" onclick="toggleViewMine('ent')">👥 Mostra tutto</button>
+            <button class="btn btn-primary toolbar-cta" id="ent-add-btn">＋ Aggiungi Entrata</button>
+          </div>
         </div>
       </div>
 
@@ -379,29 +382,33 @@
           <div class="page-subtitle" id="tx-view-label">Tutti i movimenti extra registrati</div>
         </div>
         <div class="toolbar">
-          <button class="btn btn-outline" id="tx-toggle-view-btn" onclick="toggleViewMine('tx')"
-            style="font-size:12px;">👥 Mostra tutto</button>
-          <div class="search-input-wrap">
-            <span class="search-icon">🔍</span>
-            <input class="input" id="tx-search" placeholder="Cerca..." style="width:160px;" />
+          <!-- Riga 1: Ricerca + Filtri -->
+          <div class="toolbar-filter-row">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="input" id="tx-search" placeholder="Cerca..." />
+            </div>
+            <select class="select" id="tx-filter-tipo">
+              <option value="">Tutti</option>
+              <option value="entrata">Entrate</option>
+              <option value="uscita">Uscite</option>
+            </select>
+            <select class="select" id="tx-filter-mese">
+              <option value="">Tutti i mesi</option>
+            </select>
           </div>
-          <select class="select" id="tx-filter-tipo" style="width:130px;">
-            <option value="">Tutti</option>
-            <option value="entrata">Entrate</option>
-            <option value="uscita">Uscite</option>
-          </select>
-          <select class="select" id="tx-filter-mese" style="width:150px;">
-            <option value="">Tutti i mesi</option>
-          </select>
-          <button class="btn btn-outline" id="tx-export-csv">📥 CSV</button>
-          <button class="btn btn-outline" id="tx-import-excel-btn" title="Importa da Excel">📊 Importa Excel</button>
-          <input type="file" id="tx-import-excel-file" accept=".xlsx,.xls" style="display:none" />
-          <button class="btn btn-outline" id="tx-group-btn" title="Raggruppa per categoria">🗂️ Raggruppa</button>
-          <button class="btn btn-danger" id="tx-delete-selected-btn" style="display:none;">🗑️ Elimina selezionati
-            (<span id="tx-selected-count">0</span>)</button>
-          <button class="btn btn-danger" id="tx-delete-all-btn" title="Elimina TUTTE le transazioni">🗑️ Elimina
-            tutto</button>
-          <button class="btn btn-primary" id="tx-add-btn">＋ Aggiungi</button>
+          <!-- Riga 2: Azioni secondarie (scrollabili) -->
+          <div class="toolbar-chips">
+            <button class="btn btn-outline" id="tx-toggle-view-btn" onclick="toggleViewMine('tx')">👥 Mostra tutto</button>
+            <button class="btn btn-outline" id="tx-group-btn" title="Raggruppa per categoria">🗂️ Raggruppa</button>
+            <button class="btn btn-outline" id="tx-export-csv">📥 CSV</button>
+            <button class="btn btn-outline" id="tx-import-excel-btn" title="Importa da Excel">📊 Excel</button>
+            <input type="file" id="tx-import-excel-file" accept=".xlsx,.xls" style="display:none" />
+            <button class="btn btn-danger" id="tx-delete-selected-btn" style="display:none;">🗑️ Selezionati (<span id="tx-selected-count">0</span>)</button>
+            <button class="btn btn-danger" id="tx-delete-all-btn" title="Elimina TUTTE le transazioni">🗑️ Elimina tutto</button>
+          </div>
+          <!-- Riga 3: CTA principale -->
+          <button class="btn btn-primary toolbar-cta" id="tx-add-btn">＋ Aggiungi Transazione</button>
         </div>
       </div>
 

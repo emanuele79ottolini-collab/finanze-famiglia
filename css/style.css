@@ -455,6 +455,23 @@ body::before {
   align-items: center;
 }
 
+/* Sub-containers: transparent on desktop (children flow into toolbar row) */
+.toolbar-filter-row,
+.toolbar-chips,
+.toolbar-row {
+  display: contents;
+}
+
+/* Desktop sizing for toolbar sub-items */
+.toolbar-filter-row .search-input-wrap {
+  min-width: 160px;
+  flex: 1;
+}
+
+.toolbar-filter-row .select {
+  min-width: 120px;
+}
+
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -1134,19 +1151,76 @@ tbody td {
     grid-template-columns: 1fr;
   }
 
-  /* ── Toolbar: full-width buttons on mobile ── */
+  /* ── Toolbar: riorganizzazione mobile ── */
   .toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
 
-  .toolbar .btn {
+  /* Sub-container: diventano flex box reali su mobile */
+  .toolbar-filter-row,
+  .toolbar-chips,
+  .toolbar-row {
+    display: flex !important;
     width: 100%;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Riga filtri: search occupa più spazio, select si dividono il resto */
+  .toolbar-filter-row .search-input-wrap {
+    flex: 2;
+    min-width: 0;
+  }
+
+  .toolbar-filter-row .select {
+    flex: 1;
+    min-width: 0;
+    width: auto !important;
+    font-size: 15px;
+  }
+
+  /* Chip strip: scroll orizzontale per le azioni secondarie */
+  .toolbar-chips {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .toolbar-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-chips .btn {
+    flex-shrink: 0;
+    width: auto !important;
+    white-space: nowrap;
+    min-height: 40px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  /* Toolbar-row: toggle chip + CTA affiancati */
+  .toolbar-row .btn-outline {
+    flex-shrink: 0;
+    width: auto !important;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .toolbar-row .btn-primary {
+    flex: 1;
     justify-content: center;
+    min-height: 44px;
   }
 
-  .toolbar .search-input-wrap {
-    width: 100%;
+  /* CTA esplicita: sempre larghezza piena */
+  .toolbar-cta {
+    width: 100% !important;
+    justify-content: center;
   }
 
   /* ── Table: better reading on small screens ── */
