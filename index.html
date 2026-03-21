@@ -3,7 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <title>💰 Finanze — Emanuele &amp; Elena</title>
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Gestisci le finanze di coppia: mutuo, bollette, finanziamenti, entrate e spese." />
@@ -114,6 +118,34 @@
   <!-- Mobile hamburger & backdrop -->
   <button class="hamburger" id="hamburger">☰</button>
   <div class="sidebar-backdrop"></div>
+
+  <!-- ───────────────── MOBILE BOTTOM NAV ─────────────────────── -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bottom-nav-item active" data-page="dashboard">
+      <span class="bottom-nav-icon">🏠</span>
+      <span class="bottom-nav-label">Home</span>
+    </button>
+    <button class="bottom-nav-item" data-page="costifissi">
+      <span class="bottom-nav-icon">💳</span>
+      <span class="bottom-nav-label">Costi</span>
+    </button>
+    <button class="bottom-nav-item" data-page="finanziamenti">
+      <span class="bottom-nav-icon">📊</span>
+      <span class="bottom-nav-label">Prestiti</span>
+    </button>
+    <button class="bottom-nav-item" data-page="entrate">
+      <span class="bottom-nav-icon">💼</span>
+      <span class="bottom-nav-label">Entrate</span>
+    </button>
+    <button class="bottom-nav-item" data-page="transazioni">
+      <span class="bottom-nav-icon">📋</span>
+      <span class="bottom-nav-label">Spese</span>
+    </button>
+    <button class="bottom-nav-item" data-page="impostazioni">
+      <span class="bottom-nav-icon">⚙️</span>
+      <span class="bottom-nav-label">Imposta</span>
+    </button>
+  </nav>
 
   <!-- ───────────────── MAIN ──────────────────────────────────── -->
   <main class="main">

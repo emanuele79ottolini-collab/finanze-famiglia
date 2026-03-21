@@ -73,6 +73,9 @@ function navigate(page) {
     document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.toggle('active', el.dataset.page === page);
     });
+    document.querySelectorAll('.bottom-nav-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === page);
+    });
     document.querySelectorAll('.page').forEach(el => {
         el.classList.toggle('active', el.id === `page-${page}`);
     });
@@ -936,6 +939,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sb.classList.remove('open');
             bd.classList.remove('open');
         });
+    });
+
+    // Bottom nav clicks (mobile)
+    document.querySelectorAll('.bottom-nav-item').forEach(el => {
+        el.addEventListener('click', () => navigate(el.dataset.page));
     });
 
     // Mobile hamburger
