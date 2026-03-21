@@ -455,6 +455,23 @@ body::before {
   align-items: center;
 }
 
+/* Sub-containers: transparent on desktop (children flow into toolbar row) */
+.toolbar-filter-row,
+.toolbar-chips,
+.toolbar-row {
+  display: contents;
+}
+
+/* Desktop sizing for toolbar sub-items */
+.toolbar-filter-row .search-input-wrap {
+  min-width: 160px;
+  flex: 1;
+}
+
+.toolbar-filter-row .select {
+  min-width: 120px;
+}
+
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -964,5 +981,270 @@ tbody td {
 @media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ── Bottom navigation (mobile only) ─────────────────────── */
+.bottom-nav {
+  display: none;
+}
+
+/* ── Modal slide-up animation ─────────────────────────────── */
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Mobile-specific enhancements ────────────────────────── */
+@media (max-width: 768px) {
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(10, 15, 35, .97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 2px;
+    min-height: 56px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: color var(--tr-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--accent-light);
+  }
+
+  .bottom-nav-item.active .bottom-nav-icon {
+    filter: drop-shadow(0 0 6px rgba(99, 102, 241, .6));
+  }
+
+  .bottom-nav-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .bottom-nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .02em;
+  }
+
+  /* ── Hide hamburger — bottom nav replaces it ── */
+  .hamburger {
+    display: none !important;
+  }
+
+  /* ── Main content: extra bottom padding for bottom nav ── */
+  .main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Inputs: 16px prevents iOS auto-zoom ── */
+  .input,
+  .select {
+    font-size: 16px;
+    padding: 11px 13px;
+  }
+
+  /* ── Touch targets: min 44px for buttons ── */
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  /* ── Table action buttons: easier to tap ── */
+  .td-actions .btn {
+    min-height: 36px;
+    padding: 6px 10px;
+  }
+
+  /* ── Modal: slide up from bottom ── */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 88vh;
+    animation: modalSlideUp .3s cubic-bezier(.4, 0, .2, 1);
+    padding: 24px 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Modal handle indicator ── */
+  .modal::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, .15);
+    border-radius: 99px;
+    margin: 0 auto 20px;
+  }
+
+  /* ── Toast: move to top on mobile ── */
+  #toast-container {
+    top: 16px;
+    bottom: auto;
+    left: 16px;
+    right: 16px;
+    align-items: stretch;
+  }
+
+  .toast {
+    min-width: unset;
+    width: 100%;
+    animation: none;
+  }
+
+  /* ── Page header: compact on mobile ── */
+  .page-header {
+    margin-bottom: 18px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  /* ── KPI values: slightly smaller to fit ── */
+  .kpi-value {
+    font-size: 22px;
+  }
+
+  /* ── Form grid: always single column on mobile ── */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Toolbar: riorganizzazione mobile ── */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  /* Sub-container: diventano flex box reali su mobile */
+  .toolbar-filter-row,
+  .toolbar-chips,
+  .toolbar-row {
+    display: flex !important;
+    width: 100%;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Riga filtri: search occupa più spazio, select si dividono il resto */
+  .toolbar-filter-row .search-input-wrap {
+    flex: 2;
+    min-width: 0;
+  }
+
+  .toolbar-filter-row .select {
+    flex: 1;
+    min-width: 0;
+    width: auto !important;
+    font-size: 15px;
+  }
+
+  /* Chip strip: scroll orizzontale per le azioni secondarie */
+  .toolbar-chips {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .toolbar-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-chips .btn {
+    flex-shrink: 0;
+    width: auto !important;
+    white-space: nowrap;
+    min-height: 40px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  /* Toolbar-row: toggle chip + CTA affiancati */
+  .toolbar-row .btn-outline {
+    flex-shrink: 0;
+    width: auto !important;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .toolbar-row .btn-primary {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  /* CTA esplicita: sempre larghezza piena */
+  .toolbar-cta {
+    width: 100% !important;
+    justify-content: center;
+  }
+
+  /* ── Table: better reading on small screens ── */
+  tbody td {
+    padding: 10px 12px;
+  }
+
+  thead th {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* ── Extra compact for very small phones ── */
+  .main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .kpi-card {
+    padding: 14px;
   }
 }

@@ -96,14 +96,13 @@ function startRealtimeListener(onDataChange) {
     const handler = ref.on('value', snapshot => {
         const val = snapshot.val();
         setStatus('online');
-        if (!val) return;
 
         const merged = {
-            settings: { ...defaultData.settings, ...val.settings },
-            costifissi: objToArr(val.costifissi),
-            finanziamenti: objToArr(val.finanziamenti),
-            entrate: objToArr(val.entrate),
-            transazioni: objToArr(val.transazioni),
+            settings: { ...defaultData.settings, ...(val?.settings || {}) },
+            costifissi: objToArr(val?.costifissi),
+            finanziamenti: objToArr(val?.finanziamenti),
+            entrate: objToArr(val?.entrate),
+            transazioni: objToArr(val?.transazioni),
         };
         writeCache(merged);
         if (_realtimeCallback) _realtimeCallback(merged);
@@ -133,28 +132,36 @@ function setStatus(state) {
 }
 
 // ── CRUD generico ────────────────────────────────────────────
+function fbWrite(path, value) {
+    db.ref(path).set(value).catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
+}
+
 function addItem(collection, item) {
-    const data = loadData();
     item.id = generateId();
     item.createdAt = new Date().toISOString();
+    const data = loadData();
     data[collection].push(item);
-    saveData(data);
+    writeCache(data);
+    fbWrite(`${ROOT}/${collection}/${item.id}`, item);
     return item;
 }
 
 function updateItem(collection, id, updates) {
+    updates.updatedAt = new Date().toISOString();
     const data = loadData();
     const idx = data[collection].findIndex(i => i.id === id);
     if (idx !== -1) {
-        data[collection][idx] = { ...data[collection][idx], ...updates, updatedAt: new Date().toISOString() };
+        data[collection][idx] = { ...data[collection][idx], ...updates };
     }
-    saveData(data);
+    writeCache(data);
+    db.ref(`${ROOT}/${collection}/${id}`).update(updates).catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
 }
 
 function deleteItem(collection, id) {
     const data = loadData();
     data[collection] = data[collection].filter(i => i.id !== id);
-    saveData(data);
+    writeCache(data);
+    db.ref(`${ROOT}/${collection}/${id}`).remove().catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
 }
 
 function getAll(collection) { return loadData()[collection]; }
@@ -236,7 +243,8 @@ function resetData() { saveData(deepClone(defaultData)); }
 function saveSettings(settings) {
     const data = loadData();
     data.settings = { ...data.settings, ...settings };
-    saveData(data);
+    writeCache(data);
+    db.ref(`${ROOT}/settings`).update(data.settings).catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
 }
 
 // ── Esporta API ──────────────────────────────────────────────
