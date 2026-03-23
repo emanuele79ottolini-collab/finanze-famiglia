@@ -3,11 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>💰 Finanze — Emanuele &amp; Elena</title>
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Gestisci le finanze di coppia: mutuo, bollette, finanziamenti, entrate e spese." />
@@ -39,8 +35,22 @@
         Familiari</h2>
       <div style="font-size:1.1rem;font-weight:600;color:var(--primary, #6366f1);margin-bottom:0.8rem;">Emanuele &amp;
         Elena</div>
-      <p style="margin-bottom:2rem;color:#7f8c8d;font-size:0.95rem;line-height:1.5;">Inserisci la password per accedere
-        al bilancio.</p>
+      <p style="margin-bottom:1.2rem;color:#7f8c8d;font-size:0.95rem;line-height:1.5;">Chi sei?</p>
+
+      <div style="display:flex;gap:10px;margin-bottom:1.5rem;">
+        <button id="overlay-user-1"
+          onclick="overlaySelectUser(1)"
+          style="flex:1;cursor:pointer;padding:0.75rem;border:2px solid #e2e8f0;border-radius:10px;background:#fff;font-size:1rem;font-weight:600;color:#2c3e50;transition:all 0.2s;">
+          👤 Emanuele
+        </button>
+        <button id="overlay-user-2"
+          onclick="overlaySelectUser(2)"
+          style="flex:1;cursor:pointer;padding:0.75rem;border:2px solid #e2e8f0;border-radius:10px;background:#fff;font-size:1rem;font-weight:600;color:#2c3e50;transition:all 0.2s;">
+          👤 Elena
+        </button>
+      </div>
+
+      <p style="margin-bottom:0.8rem;color:#7f8c8d;font-size:0.9rem;">Inserisci la password per accedere.</p>
 
       <input type="password" id="overlay-pwd" placeholder="Password"
         style="width:100%;padding:0.9rem 1rem;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:1rem;font-size:1rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
@@ -118,34 +128,6 @@
   <!-- Mobile hamburger & backdrop -->
   <button class="hamburger" id="hamburger">☰</button>
   <div class="sidebar-backdrop"></div>
-
-  <!-- ───────────────── MOBILE BOTTOM NAV ─────────────────────── -->
-  <nav class="bottom-nav" id="bottom-nav">
-    <button class="bottom-nav-item active" data-page="dashboard">
-      <span class="bottom-nav-icon">🏠</span>
-      <span class="bottom-nav-label">Home</span>
-    </button>
-    <button class="bottom-nav-item" data-page="costifissi">
-      <span class="bottom-nav-icon">💳</span>
-      <span class="bottom-nav-label">Costi</span>
-    </button>
-    <button class="bottom-nav-item" data-page="finanziamenti">
-      <span class="bottom-nav-icon">📊</span>
-      <span class="bottom-nav-label">Prestiti</span>
-    </button>
-    <button class="bottom-nav-item" data-page="entrate">
-      <span class="bottom-nav-icon">💼</span>
-      <span class="bottom-nav-label">Entrate</span>
-    </button>
-    <button class="bottom-nav-item" data-page="transazioni">
-      <span class="bottom-nav-icon">📋</span>
-      <span class="bottom-nav-label">Spese</span>
-    </button>
-    <button class="bottom-nav-item" data-page="impostazioni">
-      <span class="bottom-nav-icon">⚙️</span>
-      <span class="bottom-nav-label">Imposta</span>
-    </button>
-  </nav>
 
   <!-- ───────────────── MAIN ──────────────────────────────────── -->
   <main class="main">
@@ -257,20 +239,18 @@
           <div class="page-subtitle">Mutuo, bollette, abbonamenti ricorrenti</div>
         </div>
         <div class="toolbar">
-          <div class="toolbar-filter-row">
-            <div class="search-input-wrap">
-              <span class="search-icon">🔍</span>
-              <input class="input" id="cf-search" placeholder="Cerca..." />
-            </div>
-            <select class="select" id="cf-filter">
-              <option value="">Tutte le categorie</option>
-              <option value="Mutuo">Mutuo</option>
-              <option value="Bollette">Bollette</option>
-              <option value="Abbonamenti">Abbonamenti</option>
-              <option value="Altro">Altro</option>
-            </select>
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="input" id="cf-search" placeholder="Cerca..." style="width:180px;" />
           </div>
-          <button class="btn btn-primary toolbar-cta" id="cf-add-btn">＋ Aggiungi</button>
+          <select class="select" id="cf-filter" style="width:160px;">
+            <option value="">Tutte le categorie</option>
+            <option value="Mutuo">Mutuo</option>
+            <option value="Bollette">Bollette</option>
+            <option value="Abbonamenti">Abbonamenti</option>
+            <option value="Altro">Altro</option>
+          </select>
+          <button class="btn btn-primary" id="cf-add-btn">＋ Aggiungi</button>
         </div>
       </div>
 
@@ -345,10 +325,9 @@
           <div class="page-subtitle" id="ent-view-label">Stipendi e tutti gli altri redditi</div>
         </div>
         <div class="toolbar">
-          <div class="toolbar-row">
-            <button class="btn btn-outline" id="ent-toggle-view-btn" onclick="toggleViewMine('ent')">👥 Mostra tutto</button>
-            <button class="btn btn-primary toolbar-cta" id="ent-add-btn">＋ Aggiungi Entrata</button>
-          </div>
+          <button class="btn btn-outline" id="ent-toggle-view-btn" onclick="toggleViewMine('ent')"
+            style="font-size:12px;">👥 Mostra tutto</button>
+          <button class="btn btn-primary" id="ent-add-btn">＋ Aggiungi Entrata</button>
         </div>
       </div>
 
@@ -382,33 +361,29 @@
           <div class="page-subtitle" id="tx-view-label">Tutti i movimenti extra registrati</div>
         </div>
         <div class="toolbar">
-          <!-- Riga 1: Ricerca + Filtri -->
-          <div class="toolbar-filter-row">
-            <div class="search-input-wrap">
-              <span class="search-icon">🔍</span>
-              <input class="input" id="tx-search" placeholder="Cerca..." />
-            </div>
-            <select class="select" id="tx-filter-tipo">
-              <option value="">Tutti</option>
-              <option value="entrata">Entrate</option>
-              <option value="uscita">Uscite</option>
-            </select>
-            <select class="select" id="tx-filter-mese">
-              <option value="">Tutti i mesi</option>
-            </select>
+          <button class="btn btn-outline" id="tx-toggle-view-btn" onclick="toggleViewMine('tx')"
+            style="font-size:12px;">👥 Mostra tutto</button>
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="input" id="tx-search" placeholder="Cerca..." style="width:160px;" />
           </div>
-          <!-- Riga 2: Azioni secondarie (scrollabili) -->
-          <div class="toolbar-chips">
-            <button class="btn btn-outline" id="tx-toggle-view-btn" onclick="toggleViewMine('tx')">👥 Mostra tutto</button>
-            <button class="btn btn-outline" id="tx-group-btn" title="Raggruppa per categoria">🗂️ Raggruppa</button>
-            <button class="btn btn-outline" id="tx-export-csv">📥 CSV</button>
-            <button class="btn btn-outline" id="tx-import-excel-btn" title="Importa da Excel">📊 Excel</button>
-            <input type="file" id="tx-import-excel-file" accept=".xlsx,.xls" style="display:none" />
-            <button class="btn btn-danger" id="tx-delete-selected-btn" style="display:none;">🗑️ Selezionati (<span id="tx-selected-count">0</span>)</button>
-            <button class="btn btn-danger" id="tx-delete-all-btn" title="Elimina TUTTE le transazioni">🗑️ Elimina tutto</button>
-          </div>
-          <!-- Riga 3: CTA principale -->
-          <button class="btn btn-primary toolbar-cta" id="tx-add-btn">＋ Aggiungi Transazione</button>
+          <select class="select" id="tx-filter-tipo" style="width:130px;">
+            <option value="">Tutti</option>
+            <option value="entrata">Entrate</option>
+            <option value="uscita">Uscite</option>
+          </select>
+          <select class="select" id="tx-filter-mese" style="width:150px;">
+            <option value="">Tutti i mesi</option>
+          </select>
+          <button class="btn btn-outline" id="tx-export-csv">📥 CSV</button>
+          <button class="btn btn-outline" id="tx-import-excel-btn" title="Importa da Excel">📊 Importa Excel</button>
+          <input type="file" id="tx-import-excel-file" accept=".xlsx,.xls" style="display:none" />
+          <button class="btn btn-outline" id="tx-group-btn" title="Raggruppa per categoria">🗂️ Raggruppa</button>
+          <button class="btn btn-danger" id="tx-delete-selected-btn" style="display:none;">🗑️ Elimina selezionati
+            (<span id="tx-selected-count">0</span>)</button>
+          <button class="btn btn-danger" id="tx-delete-all-btn" title="Elimina TUTTE le transazioni">🗑️ Elimina
+            tutto</button>
+          <button class="btn btn-primary" id="tx-add-btn">＋ Aggiungi</button>
         </div>
       </div>
 
@@ -801,13 +776,34 @@
       const logoutBtn = document.getElementById('logout-btn');
       const pwd = 'Bilancio_2026!';
 
+      let selectedUser = 0; // 0 = nessuno selezionato
+
+      // Esposta globalmente per i pulsanti inline
+      window.overlaySelectUser = function(idx) {
+        selectedUser = idx;
+        const b1 = document.getElementById('overlay-user-1');
+        const b2 = document.getElementById('overlay-user-2');
+        const active = 'border-color:#6366f1;background:#eef2ff;color:#6366f1;';
+        const inactive = 'border-color:#e2e8f0;background:#fff;color:#2c3e50;';
+        if (b1) b1.style.cssText += idx === 1 ? active : inactive;
+        if (b2) b2.style.cssText += idx === 2 ? active : inactive;
+        err.style.display = 'none';
+        input.focus();
+      };
+
       if (sessionStorage.getItem('site_unlocked_fin') === 'true') {
         document.body.classList.remove('is-locked');
         if (overlay) overlay.style.display = 'none';
       }
 
       function unlock() {
+        if (selectedUser === 0) {
+          err.textContent = 'Seleziona prima chi sei: Emanuele o Elena.';
+          err.style.display = 'block';
+          return;
+        }
         if (input.value === pwd) {
+          localStorage.setItem('finanze_current_user', String(selectedUser));
           sessionStorage.setItem('site_unlocked_fin', 'true');
           document.body.classList.remove('is-locked');
           overlay.style.display = 'flex';
@@ -816,6 +812,7 @@
             setTimeout(() => { overlay.style.display = 'none'; }, 300);
           }, 10);
         } else {
+          err.textContent = 'Password errata, riprova.';
           err.style.display = 'block';
           input.value = '';
           input.focus();
@@ -824,8 +821,16 @@
 
       function lock() {
         sessionStorage.removeItem('site_unlocked_fin');
+        selectedUser = 0;
         input.value = '';
         err.style.display = 'none';
+        err.textContent = 'Password errata, riprova.';
+        // Reset stile pulsanti utente
+        const b1 = document.getElementById('overlay-user-1');
+        const b2 = document.getElementById('overlay-user-2');
+        const inactive = 'border-color:#e2e8f0;background:#fff;color:#2c3e50;';
+        if (b1) b1.style.cssText += inactive;
+        if (b2) b2.style.cssText += inactive;
         overlay.style.display = 'flex';
         setTimeout(() => { overlay.style.opacity = '1'; }, 10);
         document.body.classList.add('is-locked');
