@@ -35,16 +35,20 @@
         Familiari</h2>
       <div style="font-size:1.1rem;font-weight:600;color:var(--primary, #6366f1);margin-bottom:0.8rem;">Emanuele &amp;
         Elena</div>
+
+      <div id="overlay-last-login"
+        style="margin-bottom: 20px; font-size: 0.9rem; color: #7f8c8d; background: #f8fafc; padding: 8px; border-radius: 8px; display: none;">
+        Ultimo accesso: <strong id="overlay-last-login-name">Nessuno</strong>
+      </div>
+
       <p style="margin-bottom:1.2rem;color:#7f8c8d;font-size:0.95rem;line-height:1.5;">Chi sei?</p>
 
       <div style="display:flex;gap:10px;margin-bottom:1.5rem;">
-        <button id="overlay-user-1"
-          onclick="overlaySelectUser(1)"
+        <button id="overlay-user-1" onclick="overlaySelectUser(1)"
           style="flex:1;cursor:pointer;padding:0.75rem;border:2px solid #e2e8f0;border-radius:10px;background:#fff;font-size:1rem;font-weight:600;color:#2c3e50;transition:all 0.2s;">
           👤 Emanuele
         </button>
-        <button id="overlay-user-2"
-          onclick="overlaySelectUser(2)"
+        <button id="overlay-user-2" onclick="overlaySelectUser(2)"
           style="flex:1;cursor:pointer;padding:0.75rem;border:2px solid #e2e8f0;border-radius:10px;background:#fff;font-size:1rem;font-weight:600;color:#2c3e50;transition:all 0.2s;">
           👤 Elena
         </button>
@@ -106,12 +110,10 @@
         <span id="sidebar-users-label">Emanuele &amp; Elena</span>
       </div>
       <!-- Chi sta usando l'app? -->
-      <div style="margin-top:10px;font-size:11px;color:var(--text-dim);margin-bottom:4px;">Chi sei?</div>
-      <div style="display:flex;gap:6px;margin-bottom:8px;">
-        <button id="cu-btn-1" class="btn btn-outline btn-sm" style="flex:1;font-size:12px;"
-          onclick="setCurrentUser(1)">👤 Emanuele</button>
-        <button id="cu-btn-2" class="btn btn-outline btn-sm" style="flex:1;font-size:12px;"
-          onclick="setCurrentUser(2)">👤 Elena</button>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-dim);margin-bottom:4px;">Accesso attuale:</div>
+      <div id="current-user-display"
+        style="padding:8px; border-radius:6px; background:rgba(99,102,241,.15); color:var(--accent-light); font-size:13px; font-weight:600; text-align:center; margin-bottom:8px;">
+        👤 Emanuele
       </div>
       <div style="margin-top:4px;">
         <span class="file-badge disconnected" id="fb-status-badge">○ Connessione...</span>
@@ -779,7 +781,7 @@
       let selectedUser = 0; // 0 = nessuno selezionato
 
       // Esposta globalmente per i pulsanti inline
-      window.overlaySelectUser = function(idx) {
+      window.overlaySelectUser = function (idx) {
         selectedUser = idx;
         const b1 = document.getElementById('overlay-user-1');
         const b2 = document.getElementById('overlay-user-2');
@@ -794,6 +796,18 @@
       if (sessionStorage.getItem('site_unlocked_fin') === 'true') {
         document.body.classList.remove('is-locked');
         if (overlay) overlay.style.display = 'none';
+      } else {
+        // Mostra ultimo accesso se presente in localStorage
+        const lastIdx = parseInt(localStorage.getItem('finanze_current_user') || '0', 10);
+        if (lastIdx > 0) {
+          const ll = document.getElementById('overlay-last-login');
+          const lln = document.getElementById('overlay-last-login-name');
+          if (ll && lln) {
+            ll.style.display = 'block';
+            // Fallback a "Utente", verrà aggiornato meglio da app.js appena si carica Firebase
+            lln.textContent = lastIdx === 1 ? 'Emanuele' : 'Elena';
+          }
+        }
       }
 
       function unlock() {
