@@ -511,6 +511,29 @@
       </div>
     </div><!-- /impostazioni -->
 
+    <!-- ═══════════ MOBILE NAV & FAB ═══════════════════════════ -->
+    <nav class="mobile-nav">
+      <div class="mobile-nav-item active" data-page="dashboard" onclick="navigate('dashboard'); closeMobileMenu();">
+        <span class="icon">🏠</span>
+        <span>Home</span>
+      </div>
+      <div class="mobile-nav-item" data-page="transazioni" onclick="navigate('transazioni'); closeMobileMenu();">
+        <span class="icon">📋</span>
+        <span>Spese</span>
+      </div>
+      <div class="mobile-nav-item" data-page="entrate" onclick="navigate('entrate'); closeMobileMenu();">
+        <span class="icon">💼</span>
+        <span>Entrate</span>
+      </div>
+      <div class="mobile-nav-item"
+        onclick="document.querySelector('.sidebar').classList.add('open'); document.querySelector('.sidebar-backdrop').classList.add('open');">
+        <span class="icon">☰</span>
+        <span>Menu</span>
+      </div>
+    </nav>
+    <button class="mobile-fab"
+      onclick="const btn = document.getElementById('tx-add-btn'); if(btn) btn.click(); else { navigate('transazioni'); setTimeout(()=>document.getElementById('tx-add-btn').click(), 100); }">+</button>
+
   </main><!-- /main -->
 
   <!-- ═══════════════ MODALS ══════════════════════════════════ -->
@@ -843,10 +866,15 @@
         overlay.style.display = 'flex';
         setTimeout(() => { overlay.style.opacity = '1'; }, 10);
         document.body.classList.add('is-locked');
-        // Chiudi sidebar su mobile se aperta
-        document.getElementById('sidebar').classList.remove('open');
-        document.querySelector('.sidebar-backdrop').classList.remove('active');
+        closeMobileMenu();
       }
+
+      window.closeMobileMenu = function () {
+        const sb = document.getElementById('sidebar');
+        const bd = document.querySelector('.sidebar-backdrop');
+        if (sb) sb.classList.remove('open');
+        if (bd) bd.classList.remove('open');
+      };
 
       if (btn && input) {
         btn.addEventListener('click', unlock);
