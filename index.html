@@ -9,9 +9,14 @@
   <meta name="description" content="Gestisci le finanze di coppia: mutuo, bollette, finanziamenti, entrate e spese." />
   <link rel="stylesheet" href="css/style.css?v=2" />
   <style>
-    body.is-locked {
+    /* is-locked: blocca solo il contenuto interno, non gli elementi fixed */
+    body.is-locked .main {
       overflow: hidden !important;
-      height: 100vh !important;
+      pointer-events: none;
+    }
+
+    body.is-locked .sidebar {
+      pointer-events: none;
     }
   </style>
   <!-- Firebase SDK -->
@@ -841,7 +846,11 @@
           overlay.style.display = 'flex';
           setTimeout(() => {
             overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            setTimeout(() => {
+              overlay.style.display = 'none';
+              // Aggiorna utente corrente dopo che app.js è già caricato
+              if (typeof setCurrentUser === 'function') setCurrentUser(selectedUser);
+            }, 300);
           }, 10);
         } else {
           err.textContent = 'Password errata, riprova.';
