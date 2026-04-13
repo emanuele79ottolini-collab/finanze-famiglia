@@ -78,15 +78,52 @@ function saveData(data) {
         entrate: arrToObj(data.entrate),
         transazioni: arrToObj(data.transazioni),
     };
-    db.ref(ROOT).set(fbData).catch(e => {
-        console.warn('Firebase write error:', e);
-        setStatus('offline');
-    });
+    db.ref(ROOT).set(fbData)
+        .then(() => setStatus('online'))
+        .catch(e => {
+            console.warn('Firebase write error:', e);
+            setStatus('offline');
+            if (typeof showToast === 'function') showToast('⚠️ ERRORE SALVATAGGIO CLOUD. Dato salvato solo sul tuo dispositivo. Firebase è disabilitato.', 'error');
+        });
+}
+
+// ── Scrivi solo una collezione su Firebase (evita sovrascritture) ─
+function saveCollection(collection, arr) {
+    const data = loadData();
+    data[collection] = arr;
+    writeCache(data);
+    db.ref(`${ROOT}/${collection}`).set(arrToObj(arr))
+        .then(() => setStatus('online'))
+        .catch(e => {
+            console.warn('Firebase write error:', e);
+            setStatus('offline');
+            if (typeof showToast === 'function') showToast('⚠️ ERRORE SALVATAGGIO CLOUD. Dato salvato solo sul tuo dispositivo. Firebase è disabilitato.', 'error');
+        });
+}
+
+function saveSettings(settings) {
+    const data = loadData();
+    data.settings = { ...data.settings, ...settings };
+    writeCache(data);
+    db.ref(`${ROOT}/settings`).update(settings)
+        .then(() => setStatus('online'))
+        .catch(e => {
+            console.warn('Firebase write error:', e);
+            setStatus('offline');
+            if (typeof showToast === 'function') showToast('⚠️ ERRORE SALVATAGGIO CLOUD. Dato salvato solo sul tuo dispositivo. Firebase è disabilitato.', 'error');
+        });
 }
 
 // ── Listener realtime — aggiorna UI quando l'altro utente modifica ──
 let _realtimeCallback = null;
 let _fbUnsubscribe = null;
+let _fbReady = false;
+let _fbReadyCallbacks = [];
+
+function onFirebaseReady(cb) {
+    if (_fbReady) { cb(); return; }
+    _fbReadyCallbacks.push(cb);
+}
 
 function startRealtimeListener(onDataChange) {
     _realtimeCallback = onDataChange;
@@ -97,18 +134,49 @@ function startRealtimeListener(onDataChange) {
         const val = snapshot.val();
         setStatus('online');
 
-        const merged = {
-            settings: { ...defaultData.settings, ...(val?.settings || {}) },
-            costifissi: objToArr(val?.costifissi),
-            finanziamenti: objToArr(val?.finanziamenti),
-            entrate: objToArr(val?.entrate),
-            transazioni: objToArr(val?.transazioni),
-        };
-        writeCache(merged);
-        if (_realtimeCallback) _realtimeCallback(merged);
+        if (val) {
+            const merged = {
+                settings: { ...defaultData.settings, ...val.settings },
+                costifissi: objToArr(val.costifissi),
+                finanziamenti: objToArr(val.finanziamenti),
+                entrate: objToArr(val.entrate),
+                transazioni: objToArr(val.transazioni),
+            };
+            writeCache(merged);
+        } else {
+            // FIREBASE È VUOTO (NUOVO DB PULITO) -> PUSH DEI DATI LOCALI (Emanuele)
+            const local = loadData();
+            const hasData = local.transazioni.length > 0 || local.costifissi.length > 0 || local.finanziamenti.length > 0 || local.entrate.length > 0;
+            if (hasData) {
+                console.log('Nuovo DB rilevato: sincronizzo i dati locali di Emanuele verso il cloud...');
+                saveData(local); // Push to Firebase
+                if (typeof showToast === 'function') setTimeout(() => showToast('✅ I tuoi dati locali sono stati caricati sul nuovo Cloud!', 'success'), 1500);
+            }
+        }
+
+        // Prima volta: sblocca il render iniziale
+        if (!_fbReady) {
+            _fbReady = true;
+            _fbReadyCallbacks.forEach(cb => cb());
+            _fbReadyCallbacks = [];
+        }
+
+        if (_realtimeCallback) _realtimeCallback();
     }, err => {
         console.warn('Firebase read error:', err);
         setStatus('offline');
+
+        // MOSTRA ERRORE ESPLICITO
+        if (typeof showToast === 'function') {
+            showToast('⚠️ ERRORE FIREBASE: Il database è disabilitato o non raggiungibile. Usa Esporta/Importa JSON per allineare i dati temporaneamente.', 'error');
+        }
+
+        // Anche in caso di errore, sblocca il render con dati locali
+        if (!_fbReady) {
+            _fbReady = true;
+            _fbReadyCallbacks.forEach(cb => cb());
+            _fbReadyCallbacks = [];
+        }
     });
 
     _fbUnsubscribe = () => ref.off('value', handler);
@@ -132,36 +200,37 @@ function setStatus(state) {
 }
 
 // ── CRUD generico ────────────────────────────────────────────
-function fbWrite(path, value) {
-    db.ref(path).set(value).catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
-}
-
 function addItem(collection, item) {
+    const data = loadData();
     item.id = generateId();
     item.createdAt = new Date().toISOString();
-    const data = loadData();
     data[collection].push(item);
     writeCache(data);
-    fbWrite(`${ROOT}/${collection}/${item.id}`, item);
+    db.ref(`${ROOT}/${collection}/${item.id}`).set(item)
+        .then(() => setStatus('online'))
+        .catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); if (typeof showToast === 'function') showToast('⚠️ ERRORE SALVATAGGIO CLOUD. Lato server disabilitato.', 'error'); });
     return item;
 }
 
 function updateItem(collection, id, updates) {
-    updates.updatedAt = new Date().toISOString();
     const data = loadData();
     const idx = data[collection].findIndex(i => i.id === id);
     if (idx !== -1) {
-        data[collection][idx] = { ...data[collection][idx], ...updates };
+        data[collection][idx] = { ...data[collection][idx], ...updates, updatedAt: new Date().toISOString() };
+        writeCache(data);
+        db.ref(`${ROOT}/${collection}/${id}`).update({ ...updates, updatedAt: data[collection][idx].updatedAt })
+            .then(() => setStatus('online'))
+            .catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); if (typeof showToast === 'function') showToast('⚠️ ERRORE SALVATAGGIO CLOUD. Lato server disabilitato.', 'error'); });
     }
-    writeCache(data);
-    db.ref(`${ROOT}/${collection}/${id}`).update(updates).catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
 }
 
 function deleteItem(collection, id) {
     const data = loadData();
     data[collection] = data[collection].filter(i => i.id !== id);
     writeCache(data);
-    db.ref(`${ROOT}/${collection}/${id}`).remove().catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
+    db.ref(`${ROOT}/${collection}/${id}`).remove()
+        .then(() => setStatus('online'))
+        .catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
 }
 
 function getAll(collection) { return loadData()[collection]; }
@@ -240,13 +309,6 @@ function importJSON(file) {
 
 function resetData() { saveData(deepClone(defaultData)); }
 
-function saveSettings(settings) {
-    const data = loadData();
-    data.settings = { ...data.settings, ...settings };
-    writeCache(data);
-    db.ref(`${ROOT}/settings`).update(data.settings).catch(e => { console.warn('Firebase write error:', e); setStatus('offline'); });
-}
-
 // ── Esporta API ──────────────────────────────────────────────
 window.DB = {
     loadData, saveData,
@@ -254,5 +316,5 @@ window.DB = {
     calcTotaleCostiMensili, calcTotaleEntrateMensili, calcSaldo,
     calcDistribuzioneCosti, calcStorico6Mesi,
     exportJSON, importJSON, resetData, saveSettings,
-    startRealtimeListener, stopRealtimeListener, setStatus,
+    startRealtimeListener, stopRealtimeListener, setStatus, onFirebaseReady,
 };

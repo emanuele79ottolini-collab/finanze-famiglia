@@ -18,11 +18,24 @@ function renderDonutChart(canvasId) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return;
 
+    const parent = ctx.parentElement;
     if (donutChart) { donutChart.destroy(); donutChart = null; }
 
     if (labels.length === 0) {
-        ctx.parentElement.innerHTML = '<p class="chart-empty">Nessun dato da visualizzare</p>';
+        ctx.style.display = 'none';
+        let emptyMsg = parent.querySelector('.chart-empty');
+        if (!emptyMsg) {
+            emptyMsg = document.createElement('p');
+            emptyMsg.className = 'chart-empty';
+            emptyMsg.textContent = 'Nessun dato da visualizzare';
+            parent.appendChild(emptyMsg);
+        }
+        emptyMsg.style.display = 'block';
         return;
+    } else {
+        ctx.style.display = 'block';
+        const emptyMsg = parent.querySelector('.chart-empty');
+        if (emptyMsg) emptyMsg.style.display = 'none';
     }
 
     donutChart = new Chart(ctx, {

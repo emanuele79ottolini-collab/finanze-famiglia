@@ -34,24 +34,58 @@ function getCurrentUser() {
     return 'Comune';
 }
 
-function setCurrentUser(idx) {
+function setCurrentUser(idx, silent = false) {
     localStorage.setItem('finanze_current_user', String(idx));
     const data = DB.loadData();
     const name = idx === 1 ? (data.settings.user1 || 'Emanuele') : (data.settings.user2 || 'Elena');
-    // Aggiorna stile pulsanti sidebar
-    ['cu-btn-1', 'cu-btn-2'].forEach((id, i) => {
-        const btn = $(id);
-        if (!btn) return;
-        btn.className = 'btn btn-sm ' + (i + 1 === idx ? 'btn-primary' : 'btn-outline');
-        btn.style.flex = '1';
-        btn.style.fontSize = '12px';
-    });
-    showToast(`👤 Ciao ${name}! I tuoi inserimenti saranno taggati automaticamente.`);
+
+    // Aggiorna label sidebar
+    const disp = $('current-user-display');
+    if (disp) disp.textContent = `👤 ${name}`;
+
+    // Aggiorna "ultimo accesso" sulla schermata di lock
+    const topDisp = $('overlay-last-login-name');
+    const topBox = $('overlay-last-login');
+    if (topDisp) topDisp.textContent = name;
+    if (topBox) topBox.style.display = 'block';
+
+    if (!silent) showToast(`👤 Ciao ${name}! I tuoi inserimenti saranno taggati automaticamente.`);
 }
 
 function initCurrentUserUI() {
     const idx = parseInt(localStorage.getItem('finanze_current_user') || '0', 10);
-    if (idx > 0) setCurrentUser(idx);
+    if (idx > 0) setCurrentUser(idx, true); // silent = true: no toast on page load
+}
+
+function updateDynamicNames() {
+    const data = DB.loadData();
+    const u1 = data.settings.user1 || 'Emanuele';
+    const u2 = data.settings.user2 || 'Elena';
+
+    // Aggiorna Schermata Login
+    const b1 = $('overlay-user-1'); if (b1) b1.textContent = u1;
+    const b2 = $('overlay-user-2'); if (b2) b2.textContent = u2;
+    const title = $('overlay-title-names'); if (title) title.textContent = `${u1} & ${u2}`;
+
+    // Aggiorna menu a tendina per transazioni e entrate
+    ['tx-persona', 'ent-persona'].forEach(id => {
+        const sel = $(id);
+        if (sel && sel.options && sel.options.length >= 2) {
+            // Seleziona il valore corrente se esistente
+            let selected = sel.value;
+            // Aggiorna il testo e dinamicamente anche il valore!
+            sel.innerHTML = `
+                <option value="${esc(u1)}">${esc(u1)}</option>
+                <option value="${esc(u2)}">${esc(u2)}</option>
+                <option value="Comune">Comune</option>
+            `;
+            // Ripristina valore se era già impostato e corrisponde ai nuovi
+            sel.value = selected;
+        }
+    });
+
+    // Aggiorna etichette sidebar (se esistono)
+    const sbLabel = $('sidebar-users-label'); if (sbLabel) sbLabel.textContent = `${u1} & ${u2}`;
 }
 
 // ── Router ───────────────────────────────────────────────────
@@ -73,9 +107,13 @@ function navigate(page) {
     document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.toggle('active', el.dataset.page === page);
     });
-    document.querySelectorAll('.bottom-nav-item').forEach(el => {
-        el.classList.toggle('active', el.dataset.page === page);
+
+    document.querySelectorAll('.mobile-nav-item').forEach(el => {
+        if (el.dataset.page) {
+            el.classList.toggle('active', el.dataset.page === page);
+        }
     });
+
     document.querySelectorAll('.page').forEach(el => {
         el.classList.toggle('active', el.id === `page-${page}`);
     });
@@ -844,6 +882,7 @@ function importExcel(file) {
 
             showToast(`✅ ${imported} transazioni importate${skipped ? ` (${skipped} righe saltate)` : ''}`);
             renderTransazioni();
+            updateDynamicNames(); // Assicura che la UI abbia i nomi aggiornati dal database
         } catch (err) {
             console.error(err);
             showToast('Errore nella lettura del file Excel', 'error');
@@ -939,11 +978,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sb.classList.remove('open');
             bd.classList.remove('open');
         });
-    });
-
-    // Bottom nav clicks (mobile)
-    document.querySelectorAll('.bottom-nav-item').forEach(el => {
-        el.addEventListener('click', () => navigate(el.dataset.page));
     });
 
     // Mobile hamburger
@@ -1068,19 +1102,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── Firebase realtime listener ────────────────────────────
-    DB.startRealtimeListener((newData) => {
+    DB.startRealtimeListener(() => {
         // Dati aggiornati da Firebase (es. l'altra persona ha fatto una modifica)
         syncFirebaseBadges(true);
         updateSidebarUsers();
+        updateDynamicNames();
         navigate(currentPage); // ri-renderizza la pagina corrente con i nuovi dati
     });
 
-    // Sidebar users update
-    updateSidebarUsers();
-    initCurrentUserUI();
-
-    // Default page
-    navigate('dashboard');
+    // Aspetta che Firebase risponda prima del primo render
+    DB.onFirebaseReady(() => {
+        updateSidebarUsers();
+        updateDynamicNames();
+        initCurrentUserUI();
+        navigate('dashboard');
+    });
 
     // months filter now populated dynamically inside renderTransazioni()
 });
