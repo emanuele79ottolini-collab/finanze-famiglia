@@ -6,7 +6,9 @@
 const $ = id => document.getElementById(id);
 const fmt = v => {
     const cur = (DB.loadData().settings.currency) || '€';
-    return `${cur}${Number(v || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = Number(v || 0);
+    const sign = num < 0 ? '-' : '';
+    return `${sign}${cur}${Math.abs(num).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 const fmtDate = d => d ? new Date(d).toLocaleDateString('it-IT') : '—';
 
@@ -143,6 +145,10 @@ function renderDashboard() {
     $('kpi-cc1').textContent = fmt(cc1);
     $('kpi-cc2').textContent = fmt(cc2);
     $('kpi-cc-tot').textContent = fmt(cctot);
+
+    $('kpi-cc1').style.color = cc1 < 0 ? 'var(--danger)' : 'var(--accent)';
+    $('kpi-cc2').style.color = cc2 < 0 ? 'var(--danger)' : 'var(--pink)';
+    $('kpi-cc-tot').style.color = cctot < 0 ? 'var(--danger)' : 'var(--success)';
 
     // KPI
     $('kpi-entrate').textContent = fmt(entrate);
